@@ -1,33 +1,45 @@
-import { useState } from "react";
-import "./App.css";
+import { useEffect, useState } from "react";
+import NavBar from "./Components/NavBar";
+import Filter from "./Components/Filter";
+import Cards from "./Components/Cards";
+import { filterData, apiUrl } from "./data";
+import { toast } from "react-toastify";
+import Spinner from "./Components/Spinner";
 
 function App() {
-  const [count, setCount] = useState(0);
-  function decreaseHandler() {
-    setCount(count - 1);
+  const [courses, setCourses] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState(filterData[0].title);
+
+  async function FetchData() {
+    try {
+      setLoading(true);
+      const fetchApi = await fetch(apiUrl);
+      const jsonResponse = await fetchApi.json();
+      setCourses(jsonResponse.data);
+      setLoading(false);
+    } catch (err) {
+      toast.error("Something went wrong");
+    }
   }
 
-  function IncreaseHandler() {
-    setCount(count + 1);
-  }
+  useEffect(() => {
+    FetchData();
+  }, []);
 
-  function ResetHandler()
-  {
-    setCount(0);
-  }
   return (
-    <div className="w-[100vw] h-[100vh] flex justify-center items-center bg-[#344151] flex-col gap-10">
-      <div className="text-[#0398d4] font-medium text-2xl">
-        Increment & Decrement
+    <div className="min-h-screen flex-col flex bg-bgDark2">
+      <div>
+        <NavBar />
       </div>
 
-      <div className="bg-white flex justify-center gap-12 py-3 rounded-sm text-[25px] text-[#344151]">
-        <button onClick={decreaseHandler} className="border-r-2 text-center w-20 border-[#bfbfbf] text-5xl">-</button>
-        <div className="text-5xl font-bold gap-12">{count}</div>
-        <button onClick={IncreaseHandler} className="border-l-2 text-center w-20 border-[#bfbfbf] text-5xl">+</button>
+      <div className="bg-bgDark2">
+        <Filter categories={filterData} category={category} setCategory={setCategory}/>
       </div>
 
-      <button onClick={ResetHandler} className="bg-[#0398d4] text-white py-2 px-5 rounded-sm text-lg">Reset</button>
+      <div className="w-11/12 max-w-[1200px] min-h-[50vh] mx-auto flex flex-wrap justify-center items-center">
+      {loading ? <Spinner/> : <Cards courses={courses} category={category}/>}  
+      </div>
     </div>
   );
 }
